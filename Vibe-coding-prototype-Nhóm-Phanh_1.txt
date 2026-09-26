@@ -1,0 +1,1238 @@
+Smart Document Processing Playground
+
+Build a polished single-page web application called Smart Document Processing Playground.
+
+The application is a frontend prototype demonstrating an AI-powered document processing pipeline:
+
+Input: invoices / receipts / business documents as images or PDFs
+Processing: multimodal LLM API or mock processor
+Output: structured JSON / JSONL
+
+This is a prototype. It should visually and behaviorally resemble a batch-processing system, but it does not need a real batch API, distributed queue, authentication system, database, or server-side batch infrastructure.
+
+Each document may be processed using a normal realtime multimodal API request.
+
+The architecture must keep the processing engine isolated so a real backend queue/batch system can be introduced later without redesigning the UI.
+
+1. Core Product Concept
+
+The most important concept of the application is:
+
+Each JSONL item on the left represents an independent processing job that can be played, paused, stopped, monitored, and inspected.
+
+The application should feel like a combination of:
+
+AI developer tool
+
+file manager
+
+media player
+
+batch-processing dashboard
+
+JSON/JSONL inspector
+
+Avoid making it look like a generic CRUD/admin dashboard.
+
+The application should feel polished, technical, modern, and believable.
+
+2. Overall Layout
+
+Create a responsive single-page application with two primary columns.
+
+Left Column — Processing Jobs
+
+The left side contains a vertical list of processing jobs.
+
+Each job resembles a media-player item or file-processing card.
+
+Example:
+
+┌─────────────────────────────────────┐ │ 📄 invoices.jsonl │ │ │ │ ████████░░░░░░░░░░ 82 / 359 │ │ │ │ ▶ Ⅱ ■ │ │ │ │ Processing │ └─────────────────────────────────────┘ 
+
+Each job must contain:
+
+filename
+
+progress bar
+
+completed / total counter
+
+status
+
+Play button
+
+Pause button
+
+Stop button
+
+Supported job statuses:
+
+Ready
+
+Processing
+
+Paused
+
+Completed
+
+Failed
+
+Stopped
+
+Each job maintains completely independent state.
+
+Users should be able to create multiple jobs.
+
+Clicking a job selects it and updates the right-side detail/output panel.
+
+3. Job Model
+
+Use a data structure similar to:
+
+{ id: "job-001", name: "invoices.jsonl", status: "processing", documents: [], completedCount: 8, totalCount: 12, createdAt: "...", config: { provider: "mock", model: "google/gemini-2.5-flash", systemPrompt: "...", schema: {} }, output: [], error: null } 
+
+Each document should have its own state.
+
+Example:
+
+{ id: "invoice-001", filename: "invoice_001.jpg", url: "...", type: "image/jpeg", status: "completed", result: { invoice_number: "INV-001", invoice_date: "2026-09-20", vendor: "ABC Company", total_amount: 1520000, currency: "VND", items: [] }, error: null } 
+
+Document statuses:
+
+pending
+
+processing
+
+completed
+
+failed
+
+4. Left Panel Header
+
+At the top of the left column display:
+
+Processing Jobs 
+
+Show a small summary such as:
+
+3 jobs · 22 documents 
+
+Add:
+
++ Create Job 
+
+as the primary action.
+
+Optionally include a small Demo Mode indicator.
+
+Example:
+
+● DEMO MODE 
+
+5. Job Controls
+
+Each job must have three controls.
+
+Play
+
+Icon:
+
+▶ 
+
+Behavior:
+
+If status is Ready → start processing.
+
+If status is Paused → resume processing.
+
+If status is Stopped → resume remaining documents.
+
+If status is Processing → do nothing.
+
+The job should process documents sequentially.
+
+Pause
+
+Icon:
+
+Ⅱ 
+
+Behavior:
+
+mark the job as Paused
+
+do not start new documents after the current request finishes
+
+allow the current request to finish
+
+preserve all completed results
+
+job remains resumable
+
+Do not destroy any processed data.
+
+Stop
+
+Icon:
+
+■ 
+
+Behavior:
+
+stop the job
+
+do not start new documents
+
+preserve completed results
+
+mark job as Stopped
+
+allow the user to resume later if desired
+
+Do not delete processed results.
+
+6. Progress
+
+Every job displays:
+
+completed / total 
+
+Example:
+
+8 / 359 
+
+and a progress bar.
+
+Progress must be calculated using:
+
+completed documents / total documents 
+
+Progress must update after every completed document.
+
+Example:
+
+8 / 12 9 / 12 10 / 12 11 / 12 12 / 12 
+
+When all documents are successfully processed:
+
+Completed 
+
+If the job encounters a fatal processing error:
+
+Failed 
+
+Individual document failures should not necessarily fail the entire job. The job should continue processing remaining documents unless the error is a job-level configuration/network failure.
+
+7. Right Column — Configuration and Output
+
+The right side contains the selected job's configuration and processing details.
+
+Organize the UI into clear sections.
+
+Recommended sections:
+
+Model Configuration
+
+Processing Configuration
+
+Input Documents
+
+Expected Output Schema
+
+Processing Output
+
+Export
+
+8. Model Configuration
+
+Create a card titled:
+
+Model Configuration 
+
+Fields:
+
+Provider
+
+Dropdown:
+
+Mock Processor OpenRouter Google Gemini Custom / OpenAI-compatible 
+
+Default:
+
+Mock Processor 
+
+API Key
+
+Password input.
+
+Placeholder:
+
+Enter API key 
+
+Security requirements:
+
+never display the full API key after entering it
+
+mask the value
+
+do not put API keys into generated JSON output
+
+do not expose API keys in the UI unnecessarily
+
+For the prototype, API configuration does not need to be persisted to a server.
+
+Model
+
+Free text input.
+
+Example:
+
+google/gemini-2.5-flash 
+
+For Mock Processor:
+
+mock-document-extractor 
+
+9. Processing Configuration
+
+Create a card titled:
+
+Processing Configuration 
+
+System Prompt
+
+Large monospace textarea.
+
+Default example:
+
+You are an invoice extraction system. Extract structured information from the provided document. Return only valid JSON matching the requested schema. Do not include markdown fences. Do not include explanations. 
+
+10. Input Documents
+
+Create a card titled:
+
+Input Documents 
+
+Allow users to select a collection of files.
+
+Supported formats:
+
+JPG
+
+JPEG
+
+PNG
+
+WEBP
+
+PDF
+
+Prefer a browser file/folder picker.
+
+Do not require arbitrary filesystem access.
+
+Display selected files in a compact list.
+
+Example:
+
+✓ invoice_001.jpg ✓ invoice_002.jpg ✓ invoice_003.pdf ✓ receipt_004.png 
+
+Each item should display:
+
+filename
+
+file type
+
+file size when available
+
+processing state
+
+Allow users to remove documents before creating a job.
+
+11. Expected Output Schema
+
+Create a large JSON editor/textarea.
+
+Label:
+
+Expected Output Schema 
+
+Helper text:
+
+The model should return one JSON object matching this schema for each document. 
+
+Default schema:
+
+{ "invoice_number": "string", "invoice_date": "string", "vendor": "string", "total_amount": "number", "currency": "string", "items": [ { "name": "string", "quantity": "number", "unit_price": "number" } ] } 
+
+Validate that the schema itself contains valid JSON before creating a job.
+
+Show a clear validation error if invalid.
+
+12. Job Creation
+
+Provide a prominent button:
+
++ Create Job 
+
+When clicked:
+
+Validate provider/model configuration.
+
+Validate system prompt.
+
+Validate input documents.
+
+Validate Expected Output Schema.
+
+Create a new job.
+
+Add the job to the left-side job list.
+
+Automatically select the new job.
+
+Set initial status to Ready.
+
+Generate a name automatically.
+
+Possible names:
+
+invoices.jsonl receipts.jsonl documents_2026-09-23.jsonl 
+
+If multiple jobs have the same generated name, make the name unique.
+
+Example:
+
+invoices.jsonl invoices_2.jsonl invoices_3.jsonl 
+
+13. Generate JSONL / JSON
+
+Provide output-generation controls where appropriate.
+
+Buttons:
+
+Generate JSONL Generate JSON 
+
+These should generate output from the current job.
+
+JSONL
+
+One JSON object per line.
+
+Example:
+
+{"invoice_number":"INV-001","vendor":"ABC","total_amount":120000} {"invoice_number":"INV-002","vendor":"XYZ","total_amount":450000} 
+
+JSON
+
+Generate a valid JSON array:
+
+[ { "invoice_number": "INV-001", "vendor": "ABC", "total_amount": 120000 }, { "invoice_number": "INV-002", "vendor": "XYZ", "total_amount": 450000 } ] 
+
+14. Processing Engine
+
+The application should visually behave like a batch-processing system.
+
+However, it does NOT need a real batch API.
+
+When a job starts:
+
+Iterate through selected documents sequentially.
+
+Send a realtime multimodal API request for each document.
+
+Include: 
+
+system prompt
+
+selected model
+
+document/image
+
+expected JSON schema
+
+Receive the model response.
+
+Parse response as JSON.
+
+Validate JSON.
+
+Store the result.
+
+Append result to the job's JSONL output.
+
+Increment progress.
+
+Continue with the next document.
+
+Conceptually:
+
+document_001.jpg ↓ realtime multimodal API request ↓ LLM ↓ structured JSON ↓ validate JSON ↓ append to JSONL ↓ progress = 1 / N ↓ document_002.jpg ↓ ... 
+
+15. Processing Adapter Architecture
+
+Do not tightly couple the UI to the API implementation.
+
+Create an isolated processing adapter.
+
+Example:
+
+const documentProcessor = { async processDocument(document, config) { // implementation } } 
+
+The job-processing engine should only communicate with this interface.
+
+This allows the mock processor to later be replaced by:
+
+Mock Processor ↓ OpenRouter Processor ↓ Gemini Processor ↓ OpenAI-compatible Processor ↓ Future backend queue 
+
+without changing the UI.
+
+16. Mock Processor
+
+The default prototype processor must be a mock processor.
+
+This allows the application to work immediately without an API key.
+
+The mock processor should:
+
+Receive the document.
+
+Receive the system prompt.
+
+Receive the selected model.
+
+Receive the expected JSON schema.
+
+Simulate network/API latency.
+
+Return structured JSON.
+
+Occasionally return a deterministic failure.
+
+Simulated processing delay:
+
+500–1500ms per document 
+
+The delay should make the processing feel real without making the demo annoying.
+
+17. Deterministic Mock Processing
+
+Do not make mock failures completely random on every render.
+
+The demo should be reproducible.
+
+For example:
+
+invoice_001.jpg → success invoice_002.jpg → success invoice_003.jpg → success invoice_004.jpg → failure invoice_005.jpg → success 
+
+A failed document should return an error such as:
+
+Unable to extract a valid JSON response from the model. 
+
+The job should continue processing subsequent documents.
+
+18. Mock Data / Demo Mode
+
+The application must ship with realistic mock data.
+
+On initial load, the UI should NOT be empty.
+
+Create at least three demo jobs.
+
+Example:
+
+Job 1
+
+invoices.jsonl Processing 8 / 12 
+
+Job 2
+
+receipts.jsonl Ready 0 / 8 
+
+Job 3
+
+documents_2026-09-23.jsonl Completed 5 / 5 
+
+The exact progress states may be represented by seeded mock document states.
+
+19. Mock Documents
+
+Create approximately 8–12 mock documents across the demo jobs.
+
+Each document should have:
+
+id
+
+filename
+
+type
+
+image/PDF URL or local asset
+
+status
+
+result
+
+error
+
+Example:
+
+{ id: "invoice-001", filename: "invoice_001.jpg", type: "image/jpeg", url: "https://images.unsplash.com/...", status: "completed", result: { invoice_number: "INV-001", invoice_date: "2026-09-20", vendor: "ABC Company", total_amount: 1520000, currency: "VND", items: [ { name: "Office Supplies", quantity: 2, unit_price: 500000 }, { name: "Printing Service", quantity: 1, unit_price: 520000 } ] }, error: null } 
+
+Use public remote image URLs for mock documents if appropriate.
+
+The images should represent:
+
+invoices
+
+receipts
+
+business documents
+
+paperwork
+
+documents containing text
+
+Do not require those URLs to be available for the core UI to work.
+
+If an image fails to load:
+
+show a document placeholder
+
+keep the document usable
+
+do not break the application
+
+For maximum reliability, local mock assets in a /public/mock-documents/ directory are preferred if the implementation environment supports adding assets.
+
+20. Demo Job Composition
+
+The initial demo state should intentionally contain different states.
+
+Example:
+
+invoice_001.jpg ✓ Completed invoice_002.jpg ✓ Completed invoice_003.jpg ✓ Completed invoice_004.jpg ✗ Failed invoice_005.jpg ⏳ Pending invoice_006.jpg ⏳ Pending invoice_007.jpg ⏳ Pending invoice_008.jpg ⏳ Pending 
+
+This makes the UI immediately demonstrate:
+
+successful extraction
+
+failed extraction
+
+pending documents
+
+progress
+
+document inspection
+
+error handling
+
+21. Demo Mode Indicator
+
+Show a subtle indicator:
+
+● DEMO MODE 
+
+or:
+
+MOCK PROCESSOR 
+
+Make it clear that results are simulated.
+
+When a real API provider is configured and actively used, update the indicator accordingly.
+
+Example:
+
+● OPENROUTER 
+
+or:
+
+● GEMINI 
+
+22. Output Viewer
+
+When a job is selected, display its current output.
+
+Show processed documents and their states.
+
+Example:
+
+✓ invoice_001.jpg ✓ invoice_002.jpg ✓ invoice_003.jpg ✗ invoice_004.jpg ⏳ invoice_005.jpg 
+
+Each document should be clickable.
+
+23. Document Detail Viewer
+
+When a completed document is selected, display its generated JSON.
+
+Example:
+
+{ "invoice_number": "INV-004", "vendor": "ABC Company", "total_amount": 1520000, "currency": "VND" } 
+
+Use a monospace font.
+
+Provide a copy button.
+
+Optional:
+
+Copy JSON 
+
+24. Failed Document Viewer
+
+When a failed document is selected, show:
+
+Processing failed 
+
+and the error message.
+
+Example:
+
+Unable to extract a valid JSON response from the model. 
+
+Use a clear but subtle error presentation.
+
+Do not make errors visually overwhelming.
+
+25. Pending Document Viewer
+
+When a pending document is selected, show:
+
+Waiting to be processed 
+
+and relevant document metadata.
+
+26. Processing Document Viewer
+
+When a document is currently processing, show:
+
+Processing document... 
+
+Optionally include a small animated indicator.
+
+27. Raw JSONL Viewer
+
+Provide:
+
+View Raw JSONL 
+
+This opens a monospace viewer containing the current JSONL output.
+
+Example:
+
+{"invoice_number":"INV-001","vendor":"ABC","total_amount":120000} {"invoice_number":"INV-002","vendor":"XYZ","total_amount":450000} 
+
+Include:
+
+Copy 
+
+and:
+
+Download 
+
+actions.
+
+28. Export
+
+When processing is complete, allow the user to:
+
+Download JSONL Download JSON View Raw JSONL 
+
+Downloads should contain valid generated files.
+
+For JSONL:
+
+invoices.jsonl 
+
+For JSON:
+
+invoices.json 
+
+Do not include failed documents as valid JSON output unless the design explicitly represents them.
+
+Preferred behavior:
+
+successful documents → output records
+
+failed documents → remain visible in processing results but are excluded from successful JSON/JSONL export
+
+Optionally provide a separate error report later.
+
+29. Real API Integration
+
+The prototype should be structured to support real multimodal APIs later.
+
+The application may support:
+
+OpenRouter
+
+Google Gemini
+
+Custom / OpenAI-compatible APIs
+
+The API integration must remain behind the processing adapter.
+
+Example conceptual interface:
+
+async processDocument({ document, systemPrompt, model, schema, apiKey, provider }) { // provider-specific implementation } 
+
+The UI should not contain provider-specific processing logic.
+
+30. Browser Security / CORS
+
+If an API cannot safely be called directly from the browser because of:
+
+CORS
+
+API key security
+
+provider restrictions
+
+use the mock adapter.
+
+Do not make the application unusable because a provider cannot be called directly.
+
+Keep the architecture ready for a backend proxy.
+
+The backend can later provide:
+
+Browser ↓ Backend API ↓ Provider API 
+
+without redesigning the frontend processing UI.
+
+31. Job State Machine
+
+Implement clear job transitions.
+
+Recommended behavior:
+
+Ready ↓ Play Processing ↓ Pause Paused ↓ Play Processing ↓ Stop Stopped ↓ Play Processing ↓ all documents complete Completed 
+
+A job can also become:
+
+Failed 
+
+if a job-level error occurs.
+
+Individual document failures should not automatically fail the whole job.
+
+32. Pause Semantics
+
+Pause must not interrupt an active API request.
+
+If the current document is being processed:
+
+Pause clicked ↓ finish current request ↓ store result ↓ update progress ↓ do not start next document ↓ status = Paused 
+
+This is important.
+
+Do not abruptly terminate an in-flight request unless cancellation is explicitly supported.
+
+33. Stop Semantics
+
+Stop should prevent future documents from starting.
+
+Already completed documents must remain.
+
+Example:
+
+Before: 8 / 12 
+
+User clicks Stop.
+
+Result:
+
+Stopped 8 / 12 
+
+The eight completed results remain available.
+
+Clicking Play again resumes from document 9.
+
+34. Multiple Jobs
+
+Multiple jobs must be independently controllable.
+
+Example:
+
+invoices.jsonl Processing 8 / 12 receipts.jsonl Paused 4 / 8 documents.jsonl Completed 5 / 5 
+
+Starting one job must not reset or modify another.
+
+Users should be able to switch between jobs while a job is processing.
+
+Processing should continue independently.
+
+35. Job Selection
+
+Clicking a job should update the right panel.
+
+The right panel should show:
+
+job name
+
+job status
+
+progress
+
+configuration
+
+document list
+
+selected document result
+
+JSONL output
+
+export actions
+
+Do not reset processing when switching between jobs.
+
+36. Responsive Design
+
+The application must be responsive.
+
+Desktop:
+
+┌────────────────┬──────────────────────────────┐ │ Processing │ Configuration / Output │ │ Jobs │ │ │ │ │ │ invoices │ Model Configuration │ │ receipts │ Processing Configuration │ │ documents │ Documents │ │ │ Output │ └────────────────┴──────────────────────────────┘ 
+
+On smaller screens, stack the panels vertically.
+
+The job list should remain easy to navigate.
+
+37. Visual Design
+
+The visual style should feel like a modern developer tool / AI infrastructure dashboard.
+
+Use:
+
+dark or neutral professional theme
+
+subtle borders
+
+rounded cards
+
+compact controls
+
+restrained visual hierarchy
+
+monospace typography for technical content
+
+clean sans-serif typography for general UI
+
+subtle hover states
+
+clear active states
+
+compact spacing
+
+responsive layout
+
+Avoid:
+
+excessive gradients
+
+giant hero sections
+
+marketing-style landing page design
+
+excessive animations
+
+generic admin-dashboard appearance
+
+huge cards
+
+unnecessary charts
+
+The application should look like an internal AI engineering tool.
+
+38. Suggested Visual Hierarchy
+
+The left panel should prioritize:
+
+Job name ↓ Progress ↓ Status ↓ Controls 
+
+The right panel should prioritize:
+
+Selected job ↓ Configuration ↓ Documents ↓ Selected document result ↓ Raw JSONL / Export 
+
+39. Typography
+
+Use a modern UI font for normal text.
+
+Use monospace for:
+
+JSON
+
+JSONL
+
+API key fields
+
+model names
+
+system prompts
+
+schema editor
+
+raw API responses
+
+technical metadata
+
+Make JSON highly readable.
+
+40. Interactions
+
+Add subtle interaction feedback.
+
+Examples:
+
+button hover
+
+selected job highlight
+
+processing indicator
+
+progress animation
+
+document state transitions
+
+copy confirmation
+
+download confirmation
+
+schema validation feedback
+
+API/configuration errors
+
+Animations should be fast and subtle.
+
+Do not over-animate the interface.
+
+41. Error Handling
+
+Handle these cases gracefully:
+
+Invalid JSON Schema
+
+Show:
+
+Invalid JSON schema. Please check the syntax. 
+
+Missing Documents
+
+Show:
+
+Please select at least one document. 
+
+Missing Model
+
+Show:
+
+Please specify a model. 
+
+API Error
+
+Show:
+
+Request failed. The document was not processed. 
+
+Invalid Model JSON
+
+Show:
+
+The model returned invalid JSON. 
+
+The failed document should remain visible with its error.
+
+42. Processing Logs
+
+Optionally show a compact processing log for the selected job.
+
+Example:
+
+11:32:04 invoice_001.jpg completed 11:32:06 invoice_002.jpg completed 11:32:07 invoice_003.jpg completed 11:32:08 invoice_004.jpg failed 
+
+Keep it compact.
+
+Do not turn the application into a full logging dashboard.
+
+43. Initial Application State
+
+On first load:
+
+Load mock jobs.
+
+Load mock documents.
+
+Select invoices.jsonl.
+
+Display its progress.
+
+Display completed documents.
+
+Display at least one failed document.
+
+Display pending documents.
+
+Display one generated JSON result.
+
+Show Demo Mode.
+
+Keep the job ready for interaction.
+
+The user should immediately understand the product without needing to configure an API.
+
+44. Demo Processing Experience
+
+When the user clicks Play on a demo job:
+
+Ready ↓ Processing ↓ invoice_005.jpg ↓ ~500–1500ms delay ↓ result generated ↓ progress incremented ↓ invoice_006.jpg ↓ ... 
+
+The progress bar should animate naturally.
+
+The document list should update in real time.
+
+The output viewer should update as results become available.
+
+45. No Fake Batch API
+
+Do not pretend that the prototype is using a real batch endpoint.
+
+The internal implementation should simply process:
+
+document 1 document 2 document 3 ... document N 
+
+using realtime requests or the mock adapter.
+
+The UI can still present this as a batch-processing job.
+
+46. Architecture
+
+Prefer a structure similar to:
+
+src/ components/ JobList JobCard JobControls ModelConfiguration ProcessingConfiguration DocumentList DocumentViewer JsonViewer OutputViewer ExportControls StatusBadge ProgressBar processing/ processor.js mockProcessor.js openRouterProcessor.js geminiProcessor.js jobs/ jobManager.js jobState.js mockJobs.js utils/ json.js export.js validation.js App 
+
+The exact framework/file structure can vary.
+
+The important requirement is separation between:
+
+UI ↓ Job Manager ↓ Processing Adapter ↓ Mock / Real Provider 
+
+47. State Management
+
+Use a clean state-management approach appropriate for the selected frontend framework.
+
+At minimum track:
+
+jobs selectedJobId selectedDocumentId processingState configuration documents results errors 
+
+Avoid duplicated state where possible.
+
+Progress should be derived from document states when practical.
+
+48. Persistence
+
+A backend/database is NOT required.
+
+Optional:
+
+localStorage for configuration
+
+localStorage for mock job state
+
+localStorage for created jobs
+
+However, persistence should not complicate the prototype.
+
+Refreshing the page may reset the demo state if necessary.
+
+49. Accessibility
+
+Provide:
+
+accessible buttons
+
+tooltips for icon-only controls
+
+visible focus states
+
+keyboard-friendly controls
+
+sufficient contrast
+
+meaningful labels
+
+proper form semantics
+
+Icon-only buttons must have accessible labels.
+
+For example:
+
+Play job Pause job Stop job Copy JSON Download JSONL 
+
+50. Performance
+
+The prototype should remain responsive with at least:
+
+10 jobs 100+ documents 
+
+Avoid unnecessary rerenders.
+
+Do not load huge document previews unless needed.
+
+Remote images should use lazy loading where appropriate.
+
+51. Important Prototype Constraints
+
+Do NOT over-engineer:
+
+authentication
+
+databases
+
+distributed queues
+
+workers
+
+Kubernetes
+
+server-side batch infrastructure
+
+complex observability
+
+billing
+
+user management
+
+Prioritize:
+
+polished UI
+
+believable processing interaction
+
+working progress state
+
+working mock processing flow
+
+JSON output
+
+JSONL output
+
+clear error handling
+
+multiple independent jobs
+
+pause/resume/stop behavior
+
+clean architecture for future API integration
+
+52. Final UX Goal
+
+When the application opens, the user should immediately see something similar to:
+
+┌──────────────────────┬──────────────────────────────────────────────┐ │ PROCESSING JOBS │ invoices.jsonl │ │ │ │ │ ● DEMO MODE │ Processing · 8 / 12 │ │ │ │ │ ┌──────────────────┐ │ ┌─ Model Configuration ──────────────────┐ │ │ │ 📄 invoices.jsonl│ │ │ Provider: Mock Processor │ │ │ │ ████████░░ 8/12 │ │ │ Model: mock-document-extractor │ │ │ │ ▶ Ⅱ ■ │ │ └────────────────────────────────────────┘ │ │ │ Processing │ │ │ │ └──────────────────┘ │ ┌─ Documents ────────────────────────────┐ │ │ │ │ ✓ invoice_001.jpg │ │ │ ┌──────────────────┐ │ │ ✓ invoice_002.jpg │ │ │ │ 📄 receipts.jsonl│ │ │ ✓ invoice_003.jpg │ │ │ │ ░░░░░░░░ 0/8 │ │ │ ✗ invoice_004.jpg │ │ │ │ ▶ Ⅱ ■ │ │ │ ⏳ invoice_005.jpg │ │ │ │ Ready │ │ └────────────────────────────────────────┘ │ │ └──────────────────┘ │ │ │ │ ┌─ Generated JSON ────────────────────────┐ │ │ ┌──────────────────┐ │ │ { │ │ │ │ 📄 documents... │ │ │ "invoice_number": "INV-003", │ │ │ │ ██████████ 5/5 │ │ │ "vendor": "ABC Company", │ │ │ │ ▶ Ⅱ ■ │ │ │ "total_amount": 1520000, │ │ │ │ Completed │ │ │ "currency": "VND" │ │ │ └──────────────────┘ │ │ } │ │ │ │ └────────────────────────────────────────┘ │ │ + Create Job │ │ │ │ [View Raw JSONL] [Download JSONL] [JSON] │ └──────────────────────┴──────────────────────────────────────────────┘ 
+
+The application should feel like a real internal AI document-processing playground, while remaining lightweight enough to run entirely as a frontend prototype.
+
+Most important requirement:
+
+The left-side JSONL jobs are the primary interaction model. Each job must feel like an independent, controllable processing pipeline that can be played, paused, stopped, monitored, and inspected while the right side provides its configuration and structured output.
+
