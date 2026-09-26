@@ -1,0 +1,34 @@
+{
+  "name": "ATI Next.js Vibe Coding Environment",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Cấu hình user hoạt động trong container
+  "remoteUser": "node",
+
+  // Custom cấu hình VS Code & Extensions cần thiết
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "Prisma.prisma",
+        "saoudrizwan.claude-dev",
+        "bradlc.vscode-tailwindcss",
+        "eamodio.gitlens"
+      ]
+    }
+  },
+
+  // Forward cổng 3000 ra ngoài host để tiện mở web test
+  "forwardPorts": [3000],
+
+  // Giữ lại command đơn giản để container sẵn sàng
+  "postCreateCommand": "node -v && npm -v"
+}
