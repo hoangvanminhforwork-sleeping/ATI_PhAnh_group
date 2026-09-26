@@ -1,0 +1,8 @@
+# Ignore executable installer files
+*.exe
+
+# Common OS / IDE junk files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
