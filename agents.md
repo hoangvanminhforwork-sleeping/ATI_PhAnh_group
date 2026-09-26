@@ -17,8 +17,9 @@ To save API request quota (Max 50 requests/day), follow this strict workflow on 
    - Check `request_this_time.md` for new user feedback, feature requests, or testing notes.
 2. **Sync Task List (`todolist.md`):**
    - Update `todolist.md`. Mark finished tasks as `[x]` and new incoming tasks as `[ ]`.
-3. **Batch Execution:**
+3. **Batch Execution & File Creation:**
    - Implement code modifications, database schema updates, and API integration in **a single response turn**.
+   - **Prefer New Files Over Modifying Existing Code:** Always favor creating new isolated components, routes, or helper modules instead of refactoring/editing existing code. This minimizes breaking changes for a non-technical team.
 4. **Update Completed Features Catalog (`features.md`):**
    - After completing any working feature, **YOU MUST UPDATE** `features.md`.
    - Document what the feature is, how to use/test it on the UI, and its current operational status (e.g., Working, Mocked, In-Progress). This serves as the team's live product feature inventory.
